@@ -8,6 +8,10 @@ Feature: Contains use cases to validate that REST api works correctly
   Scenario: To check ability to create user
     When new valid user created
 
+  @put
+  Scenario: To check ability to update user
+    When first user can be updated correctly
+
   @delete
   Scenario: To check clean up ability
     When third album deleted successfully

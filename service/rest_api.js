@@ -41,6 +41,28 @@ const deleteThirdAlbumAndValidate = async () => {
 
 }
 
+const fetchFirstUser = async () => {
+        const response = await fetch('https://jsonplaceholder.typicode.com/users/1');
+        const user = await response.json()
+        return user
+}
+
+const updateFirstUserAndValidate = async () => {
+        const current_user = await fetchFirstUser()
+        const updated_user = {...current_user, ...{name: 'updateName'}}
+        const request_options = {
+                            method: 'put',
+                            body: JSON.stringify(updated_user),
+                            headers: {'Content-Type': 'application/json'}
+                           }
+        const response = await fetch('https://jsonplaceholder.typicode.com/users/3', request_options);
+        const user = await response.json()
+        expect(user.name).to.equal('updateName')
+        expect(user.username).to.equal('Bret')
+        expect(user.id).to.equal(3)
+}
+
 module.exports = {  findFirstUserAndValidate,
                     createPhotoAndValidate,
+                    updateFirstUserAndValidate,
                     deleteThirdAlbumAndValidate }

@@ -31,4 +31,16 @@ const createPhotoAndValidate = async () => {
         expect(created_photo.url).to.equal(new_photo.url)
 }
 
-module.exports = { findFirstUserAndValidate, createPhotoAndValidate }
+const deleteThirdAlbumAndValidate = async () => {
+        const request_options = {
+                            method: 'delete',
+                            headers: {'Content-Type': 'application/json'}
+                           }
+        const response = await fetch('https://jsonplaceholder.typicode.com/albums/3', request_options);
+        expect(response.ok).to.be.true
+
+}
+
+module.exports = {  findFirstUserAndValidate,
+                    createPhotoAndValidate,
+                    deleteThirdAlbumAndValidate }

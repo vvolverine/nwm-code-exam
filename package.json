@@ -4,7 +4,8 @@
   "description": "The showcase for the coding task for QA position",
   "main": "main.js",
   "scripts": {
-    "rest-suite": "npx cucumber-js --require=steps",
+    "rest-suite": "npx cucumber-js --require=steps --tags=@rest",
+    "web-suite": "npx cucumber-js --require=steps --tags='@web and @checkout'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Pheodor Paramonov",
@@ -12,6 +13,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "cucumber": "^6.0.5",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "webdriverio": "^6.0.18"
   }
 }

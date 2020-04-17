@@ -1,3 +1,4 @@
+@rest
 Feature: Contains use cases to validate that REST api works correctly
 
   @get

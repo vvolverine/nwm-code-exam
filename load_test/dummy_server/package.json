@@ -1,0 +1,13 @@
+{
+  "name": "dummy_server",
+  "version": "1.0.0",
+  "description": "Simple HTTP server for load test validation",
+  "author": "Pheodor Paramonov <pheodor.paramonov@gmail.com>",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.16.1"
+  }
+}

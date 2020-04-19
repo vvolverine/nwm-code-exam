@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: load-script
+  namespace: default
+  labels:
+    app: load-test
+spec:
+  template:
+    metadata:
+      labels:
+        app: load-test
+    spec:
+      containers:
+        - name: load-script
+          image: kubernetes.docker.internal:5000/pheodor/load_script:latest
+      restartPolicy: Never

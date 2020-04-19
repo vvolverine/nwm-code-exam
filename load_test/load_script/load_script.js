@@ -10,7 +10,9 @@ export const options = {
 };
 
 export default function() {
-  const response = http.get('http://127.0.0.1:17080/');
+  const host = __ENV.APP_HOST
+  const port = __ENV.APP_PORT
+  const response = http.get('http://' + host + ':'+ port + '/');
   check(response, {
       'status was 200': r => r.status == 200,
       'transaction time OK': r => r.timings.duration < 200,

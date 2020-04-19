@@ -2,6 +2,10 @@
 ## Prerequisites
 Please ensure that Node and NPM installed on machine
 ## How to execute
+Please step in into `functional_test` directory
+```
+     > cd functional_test
+```
 Before execution please check that project has all required dependencies. For this please execute 
 `npm install`
 ### Rest API suite

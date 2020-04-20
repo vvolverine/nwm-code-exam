@@ -1,91 +1,90 @@
 const chai = require('chai');
-const { Given, When, Then, After, Before } = require('cucumber');
+const { Given, When, Then, After, Before, setWorldConstructor } = require('cucumber');
 const { remote } = require('webdriverio');
 const { expect } = chai;
 
-let browser
+function CustomWorld({attach, parameters}) {
+    this.attach = attach
+    this.parameters = parameters
+}
+
+setWorldConstructor(CustomWorld)
 
 Before({tags: "@web"}, async () => {
-    browser = await remote({
+    this.browser = await remote({
                        logLevel: 'trace',
                        capabilities: {
                            browserName: 'chrome'
                        }
                   })
+    this.fillTheFieldInSession = fillTheField(this.browser)
+    this.clickTheButtonInSession = clickTheButton(this.browser)
+    this.checkTheElementInSession = checkTheElement(this.browser)
+    this.checkElementTextInSession = checkElementText(this.browser)
 })
 
+const fillTheField = browser => fieldLocator => async value => {
+    const field = await browser.$(fieldLocator)
+    await field.setValue(value)
+}
+
+const clickTheButton = browser => async fieldLocator => {
+    const button = await browser.$(fieldLocator)
+    await button.click()
+}
+
+const checkTheElement = browser => async fieldLocator => {
+    const element = await browser.$(fieldLocator)
+    const isEnabled = await element.isEnabled()
+    expect(isEnabled).to.be.true
+}
+
+const checkElementText = browser => fieldLocator => async expectedText => {
+    const cartCount = await browser.$(fieldLocator)
+    const text = await cartCount.getText()
+    expect(text).to.equal(expectedText)
+}
+
 Given('valid user successfully signed up to the site', async () => {
-    console.log(browser)
+    await this.browser.url('https://www.saucedemo.com/')
 
-    await browser.url('https://www.saucedemo.com/')
+    await this.fillTheFieldInSession('#user-name')('standard_user')
+    await this.fillTheFieldInSession('#password')('secret_sauce')
+    await this.clickTheButtonInSession('//*[@id="login_button_container"]/div/form/input[3]')
 
-    const userNameField = await browser.$('#user-name')
-    await userNameField.setValue('standard_user')
-
-    const passField = await browser.$('#password')
-    await passField.setValue('secret_sauce')
-
-    const loginBtn = await browser.$('//*[@id="login_button_container"]/div/form/input[3]')
-    await loginBtn.click()
-
-    const productPageName = await browser.$('//*[@id="inventory_filter_container"]/div')
-    const isDisplayed = await productPageName.isEnabled()
-    expect(isDisplayed).to.be.true
+    await this.checkTheElementInSession('//*[@id="inventory_filter_container"]/div')
 })
 
 When('customer picking first item to the cart', async () => {
-    const itemAddButton = await browser.$('//*[@id="inventory_container"]/div/div[1]/div[3]/button')
-    await itemAddButton.click()
-    const cartCount = await browser.$('//*[@id="shopping_cart_container"]/a/span')
-    const text = await cartCount.getText()
-    expect(text).to.equal('1')
+    await this.clickTheButtonInSession('//*[@id="inventory_container"]/div/div[1]/div[3]/button')
+    await this.checkElementTextInSession('//*[@id="shopping_cart_container"]/a/span')('1')
 })
 
 Then('cart contains first item', async () => {
-    const cartIcon = await browser.$('//*[@id="shopping_cart_container"]/a')
-    await cartIcon.click()
-    const cartPageName = await browser.$('//*[@id="contents_wrapper"]/div[2]')
-    const isCartEnabled = await cartPageName.isEnabled()
-    expect(isCartEnabled).to.be.true
-    const firstCartItem = await browser.$('//*[@id="item_4_title_link"]/div')
-    const firstItemText = await firstCartItem.getText()
-    expect(firstItemText).to.equal('Sauce Labs Backpack')
+    await this.clickTheButtonInSession('//*[@id="shopping_cart_container"]/a')
+    await this.checkTheElementInSession('//*[@id="contents_wrapper"]/div[2]')
+    await this.checkElementTextInSession('//*[@id="item_4_title_link"]/div')('Sauce Labs Backpack')
 })
 
 When('customer make a checkout', async () => {
-    const checkoutBtn = await browser.$('=CHECKOUT')
-    await checkoutBtn.click()
+    await this.clickTheButtonInSession('=CHECKOUT')
 
-    const userNameField = await browser.$('#first-name')
-    await userNameField.setValue('First Test Name')
+    await this.fillTheFieldInSession('#first-name')('First Test Name')
+    await this.fillTheFieldInSession('#last-name')('Last Test Name')
+    await this.fillTheFieldInSession('#postal-code')('84567')
+    await this.clickTheButtonInSession('//*[@id="checkout_info_container"]/div/form/div[2]/input')
 
-    const lastNameField = await browser.$('#last-name')
-    await lastNameField.setValue('Lat Test Name')
+    await this.checkElementTextInSession('//*[@id="contents_wrapper"]/div[2]')('Checkout: Overview')
 
-    const zipCodeField = await browser.$('#postal-code')
-    await zipCodeField.setValue('84567')
+    await this.checkElementTextInSession('//*[@id="checkout_summary_container"]/div/div[2]/div[7]')('Total: $32.39')
 
-    const continueBtn = await browser.$('//*[@id="checkout_info_container"]/div/form/div[2]/input')
-    await continueBtn.click()
-
-    const overviewPageTitle = await browser.$('//*[@id="contents_wrapper"]/div[2]')
-    const overviewPageText = await overviewPageTitle.getText()
-    expect(overviewPageText).to.equal('Checkout: Overview')
-
-    const totalPriceElement = await browser.$('//*[@id="checkout_summary_container"]/div/div[2]/div[7]')
-    const totalPriceText = await totalPriceElement.getText()
-    expect(totalPriceText).to.equal('Total: $32.39')
-
-    const finishBtn = await browser.$('=FINISH')
-    await finishBtn.click()
+    await this.clickTheButtonInSession('=FINISH')
 })
 
 Then('order placed correctly', async () => {
-    const greetingsElement = await browser.$('//*[@id="checkout_complete_container"]/h2')
-    const greetingsText = await greetingsElement.getText()
-    expect(greetingsText).to.equal('THANK YOU FOR YOUR ORDER')
+    await this.checkElementTextInSession('//*[@id="checkout_complete_container"]/h2')('THANK YOU FOR YOUR ORDER')
 })
 
 After({tags: "@web"}, async () => {
-    await browser.deleteSession()
+    await this.browser.deleteSession()
 })

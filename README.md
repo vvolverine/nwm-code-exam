@@ -17,6 +17,12 @@ To start scenario for specific operation execute
 ### Web suite
 To start checkout scenario execute
 `npm run web-suite`
+#### Allure Reports
+*NOTE* Available only for functional tests
+
+After rest or web suite execution, please run `npm run allure-serve `. This will generate report and open it in a browser.
+
+For non interactive mode plain generation option present `npm run allure-generate` that will just generate report but not open it.
 ### Performance suite - Local
 To avoid overwhelming requests to real production services, dummy REST service was introduced. To start working with it, please build the Docker image first and then start it locally.
 

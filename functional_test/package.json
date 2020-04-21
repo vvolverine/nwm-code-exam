@@ -5,12 +5,16 @@
   "main": "main.js",
   "scripts": {
     "rest-suite": "npx cucumber-js --require=steps --tags=@rest",
-    "web-suite": "npx cucumber-js --require=steps --tags='@web and @checkout'",
+    "web-suite": "npx cucumber-js --require=steps --tags='@web and @checkout' --format ./service/allure_reporter.js",
+    "allure-serve" : "npx allure serve \"./out/allure-results\"",
+    "allure-generate" : "npx allure generate -c \"./out/allure-results\" -o \"./out/allure-report\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Pheodor Paramonov",
   "license": "Apache-2.0",
   "devDependencies": {
+    "allure-commandline": "^2.13.0",
+    "allure-cucumberjs": "^2.0.0-beta.6",
     "chai": "^4.2.0",
     "cucumber": "^6.0.5",
     "node-fetch": "^2.6.0",

@@ -1,90 +1,60 @@
-const chai = require('chai');
-const { Given, When, Then, After, Before, setWorldConstructor } = require('cucumber');
-const { remote } = require('webdriverio');
-const { expect } = chai;
+const { Given, When, Then, After, Before } = require('cucumber');
 
-function CustomWorld({attach, parameters}) {
-    this.attach = attach
-    this.parameters = parameters
-}
+const web_infra = require('../service/web_infra')
 
-setWorldConstructor(CustomWorld)
+const { LoginPage } = require('../pages/login_page')
+const { ProductPage } = require('../pages/product_page')
+const { CartPage } = require('../pages/cart_page')
+const { InformationPage, OverviewPage, ConfirmationPage } = require('../pages/checkout_page')
 
 Before({tags: "@web"}, async () => {
-    this.browser = await remote({
-                       logLevel: 'trace',
-                       capabilities: {
-                           browserName: 'chrome'
-                       }
-                  })
-    this.fillTheFieldInSession = fillTheField(this.browser)
-    this.clickTheButtonInSession = clickTheButton(this.browser)
-    this.checkTheElementInSession = checkTheElement(this.browser)
-    this.checkElementTextInSession = checkElementText(this.browser)
+    this.browser = await web_infra.setup()
+    this.LoginPage = LoginPage(this.browser)
+    this.ProductPage = ProductPage(this.browser)
+    this.CartPage = CartPage(this.browser)
+    this.InformationPage = InformationPage(this.browser)
+    this.OverviewPage = OverviewPage(this.browser)
+    this.ConfirmationPage = ConfirmationPage(this.browser)
 })
 
-const fillTheField = browser => fieldLocator => async value => {
-    const field = await browser.$(fieldLocator)
-    await field.setValue(value)
-}
-
-const clickTheButton = browser => async fieldLocator => {
-    const button = await browser.$(fieldLocator)
-    await button.click()
-}
-
-const checkTheElement = browser => async fieldLocator => {
-    const element = await browser.$(fieldLocator)
-    const isEnabled = await element.isEnabled()
-    expect(isEnabled).to.be.true
-}
-
-const checkElementText = browser => fieldLocator => async expectedText => {
-    const cartCount = await browser.$(fieldLocator)
-    const text = await cartCount.getText()
-    expect(text).to.equal(expectedText)
-}
-
 Given('valid user successfully signed up to the site', async () => {
-    await this.browser.url('https://www.saucedemo.com/')
+    await this.LoginPage.open()
+    await this.LoginPage.isLoginPage()
+    await this.LoginPage.loginAsValidUser()
 
-    await this.fillTheFieldInSession('#user-name')('standard_user')
-    await this.fillTheFieldInSession('#password')('secret_sauce')
-    await this.clickTheButtonInSession('//*[@id="login_button_container"]/div/form/input[3]')
-
-    await this.checkTheElementInSession('//*[@id="inventory_filter_container"]/div')
+    await this.ProductPage.isProductPage()
 })
 
 When('customer picking first item to the cart', async () => {
-    await this.clickTheButtonInSession('//*[@id="inventory_container"]/div/div[1]/div[3]/button')
-    await this.checkElementTextInSession('//*[@id="shopping_cart_container"]/a/span')('1')
+    await this.ProductPage.addFirstItemToCart()
 })
 
 Then('cart contains first item', async () => {
-    await this.clickTheButtonInSession('//*[@id="shopping_cart_container"]/a')
-    await this.checkTheElementInSession('//*[@id="contents_wrapper"]/div[2]')
-    await this.checkElementTextInSession('//*[@id="item_4_title_link"]/div')('Sauce Labs Backpack')
+    await this.ProductPage.openCart()
+    await this.CartPage.isCartPage()
+    // TODO: make the work with cart items more independent of order
+    await this.CartPage.checkFirstItemText('Sauce Labs Backpack')
 })
 
 When('customer make a checkout', async () => {
-    await this.clickTheButtonInSession('=CHECKOUT')
+    await this.CartPage.makeCheckout()
 
-    await this.fillTheFieldInSession('#first-name')('First Test Name')
-    await this.fillTheFieldInSession('#last-name')('Last Test Name')
-    await this.fillTheFieldInSession('#postal-code')('84567')
-    await this.clickTheButtonInSession('//*[@id="checkout_info_container"]/div/form/div[2]/input')
+    await this.InformationPage.isInformationPage()
+    await this.InformationPage.fillValidInfo()
+    await this.InformationPage.continueToOverview()
 
-    await this.checkElementTextInSession('//*[@id="contents_wrapper"]/div[2]')('Checkout: Overview')
+    await this.OverviewPage.isOverviewPage()
+    // TODO: make calculations to check prices instead of string comparison
+    await this.OverviewPage.checkOrderTotal('Total: $32.39')
 
-    await this.checkElementTextInSession('//*[@id="checkout_summary_container"]/div/div[2]/div[7]')('Total: $32.39')
-
-    await this.clickTheButtonInSession('=FINISH')
+    await this.OverviewPage.completeCheckout()
 })
 
 Then('order placed correctly', async () => {
-    await this.checkElementTextInSession('//*[@id="checkout_complete_container"]/h2')('THANK YOU FOR YOUR ORDER')
+    await this.ConfirmationPage.isConfirmationPage()
+    await this.ConfirmationPage.checkGreetings()
 })
 
 After({tags: "@web"}, async () => {
-    await this.browser.deleteSession()
+    await web_infra.tearDown(this.browser)
 })
